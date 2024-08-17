@@ -1,0 +1,19 @@
+[package]
+name = "periodically"
+version = "0.1.0"
+edition = "2021"
+authors = ["David Collard <davidcollardprofessional@gmail.com"]
+license-file = "LICENSE"
+keywords = ["periodic", "cron", "job"]
+categories = ["concurrency"]
+description = "A library for running tasks on a schedule"
+repository = "https://github.com/DavidCollard/periodically"
+readme = "README.md"
+
+[dependencies]
+tokio = {version = "*", features = ["rt", "time"], optional = true}
+
+[features]
+full = ["tokio"]
+default = ["tokio"]
+tokio = ["dep:tokio"]
