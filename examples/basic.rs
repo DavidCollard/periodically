@@ -1,12 +1,12 @@
 use std::time::Duration;
 
-use periodically::{periodic::PeriodicSchedule, Scheduler, Task};
+use periodically::{IntervalSchedule, Scheduler, Task};
 
 fn main() {
     let runtime = tokio::runtime::Runtime::new().unwrap();
     let mut scheduler = Scheduler::tokio_scheduler(runtime);
 
-    let id = scheduler.add_task(MyTask, PeriodicSchedule::every(Duration::from_secs(1)));
+    let id = scheduler.add_task(MyTask, IntervalSchedule::every(Duration::from_secs(1)));
 
     let mut buf = String::new();
     std::io::stdin()

@@ -44,7 +44,7 @@ async fn nanny<T: Send + 'static>(
     task: impl Task<T> + 'static,
     schedule: impl Schedule<T> + 'static,
 ) {
-    let mut next = schedule.inital();
+    let mut next = schedule.initial();
     loop {
         match next {
             Some(duration) => {
