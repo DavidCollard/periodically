@@ -11,6 +11,11 @@ mod cron;
 #[cfg(feature = "cron")]
 pub use cron::CronSchedule;
 
+#[cfg(feature = "backoff")]
+mod backoff;
+#[cfg(feature = "backoff")]
+pub use backoff::BackoffSchedule;
+
 /// Defines an execution schedule for a given task.
 /// All duration values returned define how long until
 /// the task should start execution.
