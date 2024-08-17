@@ -3,7 +3,7 @@ name = "periodically"
 version = "0.1.0"
 edition = "2021"
 authors = ["David Collard <davidcollardprofessional@gmail.com"]
-license-file = "LICENSE.txt"
+license-file = "LICENSE"
 keywords = ["periodic", "cron", "job"]
 categories = ["concurrency"]
 
