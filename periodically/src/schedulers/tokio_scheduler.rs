@@ -1,10 +1,7 @@
-use std::collections::HashMap;
-
-use tokio::task::JoinHandle;
-
-use crate::{Schedule, Task};
-
 use super::{SchedulerExt, TaskIdentifer};
+use crate::{AsyncTask, Schedule, Task};
+use std::{collections::HashMap, sync::Arc};
+use tokio::task::{spawn_blocking, JoinHandle};
 
 pub struct TokioScheduler {
     runtime: tokio::runtime::Runtime,
@@ -21,15 +18,25 @@ impl TokioScheduler {
 }
 
 impl SchedulerExt for TokioScheduler {
-    fn add_task<T>(
+    fn add_sync_task<T: Send + 'static>(
         &mut self,
-        task: impl Task<T> + 'static,
-        schedule: impl Schedule<T> + 'static,
+        task: impl crate::Task<T> + Send + Sync + 'static,
+        schedule: impl Schedule<T> + Send + 'static,
+        task_identifier: TaskIdentifer,
+    ) {
+        let handle = self.runtime.spawn(sync_nanny(task, schedule));
+        self.handles.insert(task_identifier, handle);
+    }
+
+    fn add_async_task<T>(
+        &mut self,
+        task: impl AsyncTask<T> + Send + Sync + 'static,
+        schedule: impl Schedule<T> + Send + 'static,
         task_identifier: TaskIdentifer,
     ) where
-        T: 'static + Send,
+        T: 'static + Send + Sync,
     {
-        let handle = self.runtime.spawn(nanny(task, schedule));
+        let handle = self.runtime.spawn(async_nanny(task, schedule));
         self.handles.insert(task_identifier, handle);
     }
 
@@ -40,23 +47,50 @@ impl SchedulerExt for TokioScheduler {
     }
 }
 
-async fn nanny<T: Send + 'static>(
-    task: impl Task<T> + 'static,
-    schedule: impl Schedule<T> + 'static,
-) {
+async fn sync_nanny<T>(task: impl Task<T> + Sync + Send + 'static, schedule: impl Schedule<T>)
+where
+    T: Send + 'static,
+{
     let mut next = schedule.initial();
+    let task = Arc::new(task);
     loop {
         match next {
             Some(duration) => {
                 tokio::time::sleep(duration).await;
-                let fut = task.run();
-                let join_handle = tokio::spawn(fut).await;
-                let task_output = match join_handle {
-                    Ok(task_result) => task_result,
-                    // FIXME
-                    Err(err) => panic!("Cannot join: {err:?}"),
+                let task = task.clone();
+                let join_handle = spawn_blocking(move || task.run());
+                next = match join_handle.await {
+                    Ok(task_result) => schedule.next(task_result),
+                    Err(err) => {
+                        println!("Cannot join: {err:?}");
+                        schedule.initial()
+                    }
                 };
-                next = schedule.next(task_output)
+            }
+            None => return,
+        }
+    }
+}
+
+async fn async_nanny<T>(task: impl AsyncTask<T> + Send + Sync + 'static, schedule: impl Schedule<T>)
+where
+    T: Send + Sync + 'static,
+{
+    let mut next = schedule.initial();
+    let task = Arc::new(task);
+    loop {
+        match next {
+            Some(duration) => {
+                tokio::time::sleep(duration).await;
+                let task = task.clone();
+                let join_handle = tokio::spawn(async move { task.run().await });
+                next = match join_handle.await {
+                    Ok(task_result) => schedule.next(task_result),
+                    Err(err) => {
+                        println!("Cannot join: {err:?}");
+                        schedule.initial()
+                    }
+                };
             }
             None => return,
         }

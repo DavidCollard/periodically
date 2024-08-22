@@ -1,4 +1,4 @@
-use crate::{schedule::Schedule, Task};
+use crate::{schedule::Schedule, AsyncTask, Task};
 
 #[cfg(feature = "tokio")]
 mod tokio_scheduler;
@@ -24,20 +24,34 @@ impl Scheduler {
         }
     }
 
-    /// Adds a periodic task to the schedule. Can be cancelled using the returned identifier.
-    pub fn add_task<T>(
+    pub fn add_sync_task<T: Send + 'static>(
         &mut self,
-        task: impl Task<T> + 'static,
-        schedule: impl Schedule<T> + 'static,
+        task: impl Task<T> + Send + Sync + 'static,
+        schedule: impl Schedule<T> + Send + 'static,
+    ) -> TaskIdentifer {
+        let next_id = self.next_identifier;
+        self.next_identifier += 1;
+        match &mut self.flavour {
+            #[cfg(feature = "tokio")]
+            SchedulerFlavour::Tokio(tok) => tok.add_sync_task(task, schedule, next_id),
+        };
+        next_id
+    }
+
+    /// Adds a periodic task to the schedule. Can be cancelled using the returned identifier.
+    pub fn add_async_task<T>(
+        &mut self,
+        task: impl AsyncTask<T> + Sync + Send + 'static,
+        schedule: impl Schedule<T> + Send + 'static,
     ) -> TaskIdentifer
     where
-        T: Send + 'static,
+        T: Send + 'static + Sync,
     {
         let next_id = self.next_identifier;
         self.next_identifier += 1;
         match &mut self.flavour {
             #[cfg(feature = "tokio")]
-            SchedulerFlavour::Tokio(tok) => tok.add_task(task, schedule, next_id),
+            SchedulerFlavour::Tokio(tok) => tok.add_async_task(task, schedule, next_id),
         };
         next_id
     }
@@ -54,10 +68,17 @@ impl Scheduler {
 }
 
 trait SchedulerExt {
-    fn add_task<T: Send + 'static>(
+    fn add_sync_task<T: Send + 'static>(
         &mut self,
-        task: impl Task<T> + 'static,
-        schedule: impl Schedule<T> + 'static,
+        task: impl Task<T> + Send + Sync + 'static,
+        schedule: impl Schedule<T> + Send + 'static,
+        identifier: TaskIdentifer,
+    );
+
+    fn add_async_task<T: Send + Sync + 'static>(
+        &mut self,
+        task: impl AsyncTask<T> + Sync + Send + 'static,
+        schedule: impl Schedule<T> + Send + 'static,
         identifier: TaskIdentifer,
     );
 

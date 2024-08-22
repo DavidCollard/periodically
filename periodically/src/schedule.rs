@@ -19,7 +19,7 @@ pub use backoff::BackoffSchedule;
 /// Defines an execution schedule for a given task.
 /// All duration values returned define how long until
 /// the task should start execution.
-pub trait Schedule<T>: Send {
+pub trait Schedule<T> {
     /// How long to wait for the initial execution. Exists since
     /// the task's output is not available initially. Can be used
     /// to control initial task execution delays.

@@ -1,12 +1,17 @@
-use std::time::Duration;
-
 use periodically::{IntervalSchedule, Scheduler, Task};
+use std::{
+    sync::atomic::{AtomicUsize, Ordering},
+    time::Duration,
+};
 
 fn main() {
     let runtime = tokio::runtime::Runtime::new().unwrap();
     let mut scheduler = Scheduler::tokio_scheduler(runtime);
 
-    let id = scheduler.add_task(MyTask, IntervalSchedule::every(Duration::from_secs(1)));
+    let id = scheduler.add_sync_task(
+        MyTask::default(),
+        IntervalSchedule::every(Duration::from_secs(1)),
+    );
 
     let mut buf = String::new();
     std::io::stdin()
@@ -22,11 +27,16 @@ fn main() {
     println!("Exiting");
 }
 
-struct MyTask;
+#[derive(Default)]
+struct MyTask {
+    counter: AtomicUsize,
+}
 
 impl Task<()> for MyTask {
-    fn run(&self) -> impl std::future::Future<Output = ()> + Send + 'static {
+    fn run(&self) {
         println!("MyTask is running");
-        std::future::ready(())
+        if self.counter.fetch_add(1, Ordering::Relaxed) % 5 == 0 {
+            panic!("My task panicked!");
+        }
     }
 }
