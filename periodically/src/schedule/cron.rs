@@ -1,13 +1,14 @@
 use super::Schedule;
 use std::{str::FromStr, time::Duration};
 
+/// Runs jobs periodically based on a [`CronSchedule`] from the [`cron`] crate.
 pub struct CronSchedule {
     cron: cron::Schedule,
 }
 
 /// Schedule events according to a cron schedule.
 impl CronSchedule {
-    /// Creates a [CronSchedule] that always returns `period`.
+    /// Creates a [`CronSchedule`] that always returns `period`.
     ///
     /// ```
     /// use periodically::{Schedule, CronSchedule};
@@ -23,7 +24,7 @@ impl CronSchedule {
         let cron = cron::Schedule::from_str(cron_str.as_ref())?;
         Ok(Self { cron })
     }
-    /// Creates a [CronSchedule] that always returns `period`.
+    /// Creates a [`CronSchedule`] that always returns `period`.
     ///
     /// ```
     /// use periodically::{Schedule, CronSchedule};

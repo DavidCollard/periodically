@@ -17,7 +17,7 @@ fn interval_scheduling_is_not_too_fast() {
     let mut scheduler = Scheduler::tokio_scheduler(Runtime::new().unwrap());
     let id = scheduler.add_async_task(task, IntervalSchedule::every(INTERVAL));
     sleep(TEST_DURATION);
-    scheduler.stop_task(id).unwrap();
+    scheduler.cancel_task(id).unwrap();
 
     let real_count = counter.load(Ordering::Relaxed);
     assert!(real_count <= EXPECTED_COUNT);

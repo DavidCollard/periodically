@@ -27,7 +27,7 @@ impl PanickingTask {
     }
 }
 
-impl Task<()> for PanickingTask {
+impl Task for PanickingTask {
     fn run(&self) {
         if self.counter.fetch_add(1, Ordering::Relaxed) % self.modulo == 0 {
             panic!("Task panicked!");
@@ -35,7 +35,7 @@ impl Task<()> for PanickingTask {
     }
 }
 
-impl AsyncTask<()> for PanickingTask {
+impl AsyncTask for PanickingTask {
     fn run(&self) -> impl std::future::Future<Output = ()> + Send {
         if self.counter.fetch_add(1, Ordering::Relaxed) % self.modulo == 0 {
             panic!("Task panicked!");

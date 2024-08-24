@@ -6,15 +6,17 @@ pub use interval::IntervalSchedule;
 mod oneshot;
 pub use oneshot::OneShot;
 
-#[cfg(feature = "cron")]
-mod cron;
-#[cfg(feature = "cron")]
-pub use cron::CronSchedule;
+cfg_feature! {
+    "cron",
+    mod cron;
+    pub use cron::CronSchedule;
+}
 
-#[cfg(feature = "backoff")]
-mod backoff;
-#[cfg(feature = "backoff")]
-pub use backoff::BackoffSchedule;
+cfg_feature! {
+    "backoff",
+    mod backoff;
+    pub use backoff::BackoffSchedule;
+}
 
 /// Defines an execution schedule for a given task.
 /// All duration values returned define how long until
@@ -31,4 +33,11 @@ pub trait Schedule<T> {
     /// `task_output` is the last return value of the task, which
     /// can be ignored if desired.
     fn next(&self, task_output: T) -> Option<Duration>;
+
+    /// Returns the time until this task should be scheduled again.
+    /// Only called when the previous task execution fails to return
+    /// a value. By default, implemented as [Schedule::initial].
+    fn next_on_task_panic(&self) -> Option<Duration> {
+        self.initial()
+    }
 }

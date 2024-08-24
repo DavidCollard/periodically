@@ -32,4 +32,8 @@ impl<T> Schedule<T> for OneShot {
     fn next(&self, _: T) -> Option<std::time::Duration> {
         None
     }
+
+    fn next_on_task_panic(&self) -> Option<Duration> {
+        None
+    }
 }

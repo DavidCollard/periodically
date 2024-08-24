@@ -18,13 +18,13 @@ impl SpyingTask {
     }
 }
 
-impl Task<()> for SpyingTask {
+impl Task for SpyingTask {
     fn run(&self) -> () {
         self.count.fetch_add(1, Ordering::Relaxed);
     }
 }
 
-impl AsyncTask<()> for SpyingTask {
+impl AsyncTask for SpyingTask {
     fn run(&self) -> impl std::future::Future<Output = ()> + Send {
         self.count.fetch_add(1, Ordering::Relaxed);
         ready(())
