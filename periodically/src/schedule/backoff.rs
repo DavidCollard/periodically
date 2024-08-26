@@ -36,7 +36,7 @@ impl<B: Backoff> BackoffSchedule<B> {
 impl<T, E, B: Backoff + Send> Schedule<Result<T, E>> for BackoffSchedule<B> {
     fn next(&self, task_output: Result<T, E>) -> Option<Duration> {
         let mut backoff = self.backoff.borrow_mut();
-        if let Ok(_) = task_output {
+        if task_output.is_ok() {
             backoff.reset()
         }
         backoff.next_backoff()

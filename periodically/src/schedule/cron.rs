@@ -46,7 +46,7 @@ impl CronSchedule {
     fn calculate_next(&self) -> Option<Duration> {
         let dt = self.cron.upcoming(chrono::Utc).next()?;
         let now = chrono::Utc::now();
-        let delta = dt.signed_duration_since(&now);
+        let delta = dt.signed_duration_since(now);
         Some(delta.to_std().unwrap_or(Duration::from_secs(0)))
     }
 }

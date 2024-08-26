@@ -46,9 +46,9 @@ pub struct TokioScheduler {
     task_handles: HashMap<TaskIdentifier, JoinHandle<()>>,
 }
 
-impl Into<SchedulerFlavour> for TokioScheduler {
-    fn into(self) -> SchedulerFlavour {
-        SchedulerFlavour::Tokio(self)
+impl From<TokioScheduler> for SchedulerFlavour {
+    fn from(val: TokioScheduler) -> Self {
+        SchedulerFlavour::Tokio(val)
     }
 }
 
