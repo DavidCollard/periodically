@@ -1,10 +1,7 @@
 use periodically::{AsyncTask, Task};
-use std::{
-    future::ready,
-    sync::{
-        atomic::{AtomicUsize, Ordering},
-        Arc,
-    },
+use std::sync::{
+    atomic::{AtomicUsize, Ordering},
+    Arc,
 };
 
 #[derive(Default)]
@@ -25,8 +22,7 @@ impl Task for SpyingTask {
 }
 
 impl AsyncTask for SpyingTask {
-    fn run(&self) -> impl std::future::Future<Output = ()> + Send {
+    async fn run(&self) {
         self.count.fetch_add(1, Ordering::Relaxed);
-        ready(())
     }
 }

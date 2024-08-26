@@ -42,11 +42,10 @@ struct MyTask {
 }
 
 impl AsyncTask for MyTask {
-    fn run(&self) -> impl std::future::Future<Output = ()> + Send {
+    async fn run(&self) {
         info!("MyTask is running");
         if self.counter.fetch_add(1, Ordering::Relaxed) % 5 == 0 {
             panic!("My task panicked!");
         }
-        std::future::ready(())
     }
 }

@@ -58,4 +58,8 @@ impl<T> Schedule<T> for IntervalSchedule {
     fn initial(&self) -> Option<Duration> {
         self.delay.or(Some(self.interval))
     }
+
+    fn next_on_task_panic(&self) -> Option<Duration> {
+        Some(self.interval)
+    }
 }

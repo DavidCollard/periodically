@@ -1,9 +1,6 @@
-use std::{
-    future::ready,
-    sync::{
-        atomic::{AtomicUsize, Ordering},
-        Arc,
-    },
+use std::sync::{
+    atomic::{AtomicUsize, Ordering},
+    Arc,
 };
 
 use periodically::{AsyncTask, Task};
@@ -36,10 +33,9 @@ impl Task for PanickingTask {
 }
 
 impl AsyncTask for PanickingTask {
-    fn run(&self) -> impl std::future::Future<Output = ()> + Send {
+    async fn run(&self) {
         if self.counter.fetch_add(1, Ordering::Relaxed) % self.modulo == 0 {
             panic!("Task panicked!");
         }
-        ready(())
     }
 }
